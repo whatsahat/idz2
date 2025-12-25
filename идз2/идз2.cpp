@@ -1,6 +1,7 @@
 ﻿#include <iostream>
 #include <cstdlib>
 #include <cmath>
+#include <ctime>
 #include <limits>
 #include <fstream>
 #include <string>
@@ -11,51 +12,39 @@ typedef int** Table;
 
 
 int processTable(Table table, int rows, int cols, int& result) {
+    if (rows <= 0 || cols <= 0 || table == nullptr) return 1;
 
-    if (rows <= 0 || cols <= 0 || table == nullptr) {
-        return 1; 
-    }
+    int maxZeros = 0, minSum = INT_MAX;
+    bool hasZero = false;
 
-    int* zeroCount = new int[rows]();
-
-    // считает и ищет нули
     for (int i = 0; i < rows; i++) {
+        int zeros = 0, sum = 0;
         for (int j = 0; j < cols; j++) {
-            if (table[i][j] == 0) {
-                zeroCount[i]++;
+            if (table[i][j] == 0)
+            {
+                zeros++;
             }
+            sum += abs(table[i][j]);
+        }
+
+        if (zeros > 0)
+        {
+            hasZero = true;
+        }
+
+        if (zeros > maxZeros) 
+        {
+            maxZeros = zeros;
+            minSum = sum;
+        }
+        else if (zeros == maxZeros && sum < minSum)
+        {
+            minSum = sum;
         }
     }
 
-    int maxZeros = 0;
-    for (int i = 0; i < rows; i++) {
-        if (zeroCount[i] > maxZeros) {
-            maxZeros = zeroCount[i];
-        }
-    }
-
-    if (maxZeros == 0) {
-        result = 0;
-        delete[] zeroCount;
-        return 0;
-    }
-
-    // поиск суммы
-    result = numeric_limits<int>::max();
-
-    for (int i = 0; i < rows; i++) {
-        if (zeroCount[i] == maxZeros) {
-            int sumAbs = 0;
-            for (int j = 0; j < cols; j++) {
-                sumAbs += abs(table[i][j]);
-            }
-            if (sumAbs < result) {
-                result = sumAbs;
-            }
-        }
-    }
-    delete[] zeroCount;
-    return 0; 
+    result = hasZero ? minSum : 0;
+    return 0;
 }
 
 Table createDynamicTable(int rows, int cols) {
@@ -180,7 +169,7 @@ int loadTableFromFile(Table& table, int& rows, int& cols) {
     table = createDynamicTable(rows, cols);
     if (table == nullptr) {
         file.close();
-        return 3; // пустая таблица
+        return 3;
     }
 
     for (int i = 0; i < rows; i++) {
@@ -292,7 +281,6 @@ int main() {
         }
     } while (choice != 6);
 
-    // Освобождаем память перед выходом
     deleteTable(table, rows);
 
     return 0;
